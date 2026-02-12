@@ -1,0 +1,271 @@
+# Allure 报告配置模板
+
+# 报告标题和语言
+title: "测试执行报告"
+language: "zh-CN"
+
+# 报告配置
+report:
+  language: "zh-CN"
+  plugins:
+    - "behaviors"      # 行为驱动报告
+    - "packages"       # 包结构报告
+    - "screen-diff"    # 屏幕差异对比
+    - "xctest"         # XCTest 支持
+    - "jira"           # JIRA 集成
+    - "xray"           # Xray 集成
+    - "testops"        # TestOps 集成
+  
+  # 分类配置路径
+  categories: "allure/categories/categories.json"
+  
+  # 环境配置路径
+  environment: "allure/environment/environment.properties"
+
+# 导出配置
+export:
+  # 报告输出路径
+  path: "reports/allure-report"
+  
+  # 清理旧报告
+  clean: true
+  
+  # 报告设置
+  report:
+    name: "测试执行报告"
+    language: "zh-CN"
+
+# 插件配置
+plugins:
+  # JIRA 集成配置
+  jira:
+    # JIRA 服务器地址
+    url: "https://jira.example.com"
+    
+    # 项目键
+    project: "PROJ"
+    
+    # 问题类型映射
+    issue_type_map:
+      bug: "Bug"
+      task: "Task"
+      story: "Story"
+    
+    # 认证信息（建议使用环境变量）
+    # username: "${JIRA_USERNAME}"
+    # password: "${JIRA_PASSWORD}"
+  
+  # TestOps 集成配置
+  testops:
+    # TestOps 服务器地址
+    url: "https://testops.example.com"
+    
+    # 项目标识
+    project: "test-project"
+    
+    # 认证信息
+    # token: "${TESTOPS_TOKEN}"
+  
+  # 屏幕差异配置
+  screen-diff:
+    # 截图目录
+    screenshot_dir: "reports/screenshots"
+    
+    # 差异阈值 (0-1)
+    diff_threshold: 0.01
+    
+    # 启用/禁用
+    enabled: true
+
+# 历史配置（保留历史报告数据）
+history:
+  # 历史报告目录
+  directory: "reports/allure-history"
+  
+  # 保留的报告数量
+  keep: 20
+  
+  # 趋势计算
+  trend:
+    enabled: true
+    build_count: 10
+
+# 自定义样式和主题
+style:
+  # 自定义 CSS 文件
+  css: "allure/custom.css"
+  
+  # 自定义 logo
+  logo: "allure/logo.png"
+  
+  # 主题颜色
+  colors:
+    primary: "#1890ff"
+    success: "#52c41a"
+    warning: "#faad14"
+    danger: "#f5222d"
+    info: "#13c2c2"
+
+# 邮件通知配置
+notifications:
+  # 启用邮件通知
+  enabled: false
+  
+  # SMTP 配置
+  smtp:
+    host: "smtp.example.com"
+    port: 587
+    username: "${SMTP_USERNAME}"
+    password: "${SMTP_PASSWORD}"
+    ssl: true
+  
+  # 收件人列表
+  recipients:
+    - "team@example.com"
+    - "manager@example.com"
+  
+  # 通知条件
+  conditions:
+    # 当测试失败时通知
+    on_failure: true
+    
+    # 当测试通过时通知
+    on_success: false
+    
+    # 当测试不稳定时通知
+    on_flaky: true
+
+# 并行测试支持
+parallel:
+  # 启用并行测试报告合并
+  enabled: true
+  
+  # 结果合并策略
+  strategy: "concat"
+  
+  # 临时文件目录
+  temp_dir: "reports/temp"
+
+# 自定义标签和分类
+labels:
+  # 自动标签
+  auto:
+    # 从测试代码中提取标签
+    epic: true
+    feature: true
+    story: true
+    severity: true
+    
+    # 自定义标签提取
+    tag: true
+    owner: true
+    layer: true
+  
+  # 手动标签映射
+  mapping:
+    # 将 pytest markers 映射到 allure labels
+    pytest_markers:
+      smoke: "smoke"
+      regression: "regression"
+      api: "api"
+      ui: "ui"
+      integration: "integration"
+    
+    # 将测试类/方法名映射到标签
+    name_patterns:
+      - pattern: ".*[Ss]moke.*"
+        labels: ["smoke"]
+      - pattern: ".*[Aa]pi.*"
+        labels: ["api"]
+      - pattern: ".*[Uu]i.*"
+        labels: ["ui"]
+
+# 环境变量替换
+environment:
+  # 敏感信息替换
+  mask:
+    - "password"
+    - "token"
+    - "secret"
+    - "key"
+  
+  # 环境变量白名单
+  whitelist:
+    - "APP_ENV"
+    - "APP_VERSION"
+    - "BROWSER"
+    - "PLATFORM"
+  
+  # 自定义环境变量
+  custom:
+    report_generated_at: "2025-02-07"
+    test_framework: "pytest"
+    allure_version: "2.24.0"
+
+# 附件配置
+attachments:
+  # 最大附件大小 (MB)
+  max_size_mb: 10
+  
+  # 支持的文件类型
+  allowed_types:
+    - "image/png"
+    - "image/jpeg"
+    - "image/gif"
+    - "text/plain"
+    - "text/html"
+    - "application/json"
+    - "application/xml"
+  
+  # 自动附加的日志文件
+  auto_attach:
+    logs: true
+    screenshots: true
+    html: true
+
+# 测试结果处理
+results:
+  # 结果文件模式
+  file_pattern: "*.json"
+  
+  # 结果目录
+  directory: "reports/allure-results"
+  
+  # 结果清理
+  cleanup:
+    # 自动清理旧结果
+    enabled: true
+    
+    # 保留天数
+    keep_days: 7
+    
+    # 保留数量
+    keep_count: 50
+
+# 本地化配置
+localization:
+  # 默认语言
+  default: "zh-CN"
+  
+  # 支持的语言
+  supported:
+    - "zh-CN"
+    - "en-US"
+    - "ja-JP"
+  
+  # 翻译文件目录
+  translations: "allure/translations"
+
+# 调试配置
+debug:
+  # 启用调试模式
+  enabled: false
+  
+  # 调试日志级别
+  log_level: "INFO"
+  
+  # 详细日志
+  verbose: false
+
+# 示例配置结束
+# 注意: 将 ${VAR} 替换为实际值或使用环境变量

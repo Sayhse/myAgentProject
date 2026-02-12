@@ -1,0 +1,56 @@
+[
+  {
+    "name": "产品缺陷",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*AssertionError.*|.*expected.*but was.*|.*TimeoutException.*",
+    "traceRegex": ".*"
+  },
+  {
+    "name": "测试缺陷",
+    "matchedStatuses": ["broken"],
+    "messageRegex": ".*NullPointerException.*|.*IndexOutOfBoundsException.*|.*NoSuchElementException.*",
+    "traceRegex": ".*"
+  },
+  {
+    "name": "环境问题",
+    "matchedStatuses": ["broken"],
+    "messageRegex": ".*Connection refused.*|.*Timeout.*|.*FileNotFoundException.*",
+    "traceRegex": ".*"
+  },
+  {
+    "name": "已跳过测试",
+    "matchedStatuses": ["skipped"],
+    "messageRegex": ".*",
+    "traceRegex": ".*"
+  },
+  {
+    "name": "已知问题",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": ".*KNOWN_ISSUE.*|.*TODO.*|.*FIXME.*",
+    "traceRegex": ".*"
+  },
+  {
+    "name": "待修复测试",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": ".*flaky.*|.*intermittent.*",
+    "traceRegex": ".*"
+  }
+]
+
+// 使用说明：
+// 1. 将此文件复制到 allure-results 目录
+// 2. 根据需要修改分类规则
+// 3. Allure 会自动使用这些分类对测试结果进行分组
+
+// 配置项说明：
+// - name: 分类名称
+// - matchedStatuses: 匹配的测试状态（failed, broken, passed, skipped, unknown）
+// - messageRegex: 匹配错误消息的正则表达式
+// - traceRegex: 匹配堆栈跟踪的正则表达式
+
+// 状态说明：
+// - failed: 测试失败（断言失败）
+// - broken: 测试中断（未处理的异常）
+// - passed: 测试通过
+// - skipped: 测试跳过
+// - unknown: 未知状态

@@ -1,0 +1,427 @@
+{
+  "description": "测试数据模板文件",
+  "generated_at": "2025-02-07T00:00:00Z",
+  "version": "1.0.0",
+  
+  "test_environments": {
+    "local": {
+      "name": "本地开发环境",
+      "api_base_url": "http://localhost:8080",
+      "ui_base_url": "http://localhost:3000",
+      "database": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "test_db",
+        "username": "test_user",
+        "password": "test_password"
+      }
+    },
+    "test": {
+      "name": "测试环境",
+      "api_base_url": "https://api-test.example.com",
+      "ui_base_url": "https://app-test.example.com",
+      "database": {
+        "host": "db-test.example.com",
+        "port": 5432,
+        "name": "test_db",
+        "username": "test_user",
+        "password": "${TEST_DB_PASSWORD}"
+      }
+    },
+    "staging": {
+      "name": "预生产环境",
+      "api_base_url": "https://api-staging.example.com",
+      "ui_base_url": "https://app-staging.example.com",
+      "database": {
+        "host": "db-staging.example.com",
+        "port": 5432,
+        "name": "staging_db",
+        "username": "staging_user",
+        "password": "${STAGING_DB_PASSWORD}"
+      }
+    }
+  },
+  
+  "test_users": {
+    "admin_user": {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@example.com",
+      "password": "Admin@123456",
+      "role": "admin",
+      "permissions": ["read", "write", "delete", "manage_users"]
+    },
+    "regular_user": {
+      "id": 2,
+      "username": "test_user",
+      "email": "user@example.com",
+      "password": "User@123456",
+      "role": "user",
+      "permissions": ["read", "write"]
+    },
+    "inactive_user": {
+      "id": 3,
+      "username": "inactive_user",
+      "email": "inactive@example.com",
+      "password": "Inactive@123456",
+      "role": "user",
+      "status": "inactive",
+      "permissions": []
+    },
+    "locked_user": {
+      "id": 4,
+      "username": "locked_user",
+      "email": "locked@example.com",
+      "password": "Locked@123456",
+      "role": "user",
+      "status": "locked",
+      "permissions": []
+    }
+  },
+  
+  "test_products": [
+    {
+      "id": 1,
+      "sku": "SKU001",
+      "name": "智能手机",
+      "description": "高端智能手机，配备最新处理器和摄像头",
+      "category": "电子产品",
+      "price": 5999.99,
+      "original_price": 6999.99,
+      "currency": "CNY",
+      "stock_quantity": 100,
+      "rating": 4.5,
+      "review_count": 120,
+      "tags": ["手机", "智能", "电子", "新品"],
+      "specifications": {
+        "brand": "测试品牌",
+        "model": "Model X",
+        "color": "黑色",
+        "storage": "256GB",
+        "memory": "8GB",
+        "screen_size": "6.5英寸"
+      }
+    },
+    {
+      "id": 2,
+      "sku": "SKU002",
+      "name": "无线耳机",
+      "description": "降噪无线耳机，长续航时间",
+      "category": "电子产品",
+      "price": 899.99,
+      "original_price": 999.99,
+      "currency": "CNY",
+      "stock_quantity": 50,
+      "rating": 4.2,
+      "review_count": 80,
+      "tags": ["耳机", "无线", "蓝牙", "音频"],
+      "specifications": {
+        "brand": "测试品牌",
+        "model": "Model Y",
+        "color": "白色",
+        "battery_life": "30小时",
+        "noise_cancellation": true,
+        "water_resistant": true
+      }
+    },
+    {
+      "id": 3,
+      "sku": "SKU003",
+      "name": "笔记本电脑",
+      "description": "高性能笔记本电脑，适合工作和娱乐",
+      "category": "电子产品",
+      "price": 8999.99,
+      "original_price": 9999.99,
+      "currency": "CNY",
+      "stock_quantity": 25,
+      "rating": 4.8,
+      "review_count": 45,
+      "tags": ["电脑", "笔记本", "工作", "游戏"],
+      "specifications": {
+        "brand": "测试品牌",
+        "model": "Model Z",
+        "color": "银色",
+        "processor": "Intel i7",
+        "ram": "16GB",
+        "storage": "512GB SSD",
+        "screen_size": "15.6英寸"
+      }
+    }
+  ],
+  
+  "test_orders": [
+    {
+      "id": 1,
+      "order_number": "ORD20250207001",
+      "user_id": 2,
+      "order_date": "2025-02-07T10:30:00Z",
+      "status": "processing",
+      "payment_method": "credit_card",
+      "payment_status": "paid",
+      "shipping_method": "express",
+      "items": [
+        {
+          "product_id": 1,
+          "quantity": 1,
+          "unit_price": 5999.99,
+          "total_price": 5999.99
+        },
+        {
+          "product_id": 2,
+          "quantity": 2,
+          "unit_price": 899.99,
+          "total_price": 1799.98
+        }
+      ],
+      "subtotal": 7799.97,
+      "shipping_cost": 50.0,
+      "tax": 779.99,
+      "total": 8629.96,
+      "currency": "CNY"
+    },
+    {
+      "id": 2,
+      "order_number": "ORD20250207002",
+      "user_id": 2,
+      "order_date": "2025-02-07T14:15:00Z",
+      "status": "shipped",
+      "payment_method": "paypal",
+      "payment_status": "paid",
+      "shipping_method": "standard",
+      "items": [
+        {
+          "product_id": 3,
+          "quantity": 1,
+          "unit_price": 8999.99,
+          "total_price": 8999.99
+        }
+      ],
+      "subtotal": 8999.99,
+      "shipping_cost": 30.0,
+      "tax": 900.0,
+      "total": 9929.99,
+      "currency": "CNY",
+      "tracking_number": "TRK123456789"
+    }
+  ],
+  
+  "api_test_cases": {
+    "valid_requests": {
+      "create_user": {
+        "username": "new_user",
+        "email": "new.user@example.com",
+        "password": "New@123456",
+        "first_name": "张",
+        "last_name": "三",
+        "age": 30,
+        "gender": "male",
+        "phone": "13800138000",
+        "address": "测试地址123号"
+      },
+      "update_user": {
+        "first_name": "李",
+        "last_name": "四",
+        "email": "updated.email@example.com",
+        "phone": "13900139000"
+      },
+      "login": {
+        "username": "test_user",
+        "password": "User@123456"
+      },
+      "create_product": {
+        "name": "新测试产品",
+        "description": "这是一个新测试产品的描述",
+        "price": 299.99,
+        "category": "测试类别",
+        "stock_quantity": 100,
+        "tags": ["测试", "新品", "示例"]
+      },
+      "place_order": {
+        "user_id": 2,
+        "items": [
+          {
+            "product_id": 1,
+            "quantity": 2
+          },
+          {
+            "product_id": 2,
+            "quantity": 1
+          }
+        ],
+        "shipping_address": {
+          "recipient": "张三",
+          "phone": "13800138000",
+          "address": "收货地址123号",
+          "city": "北京",
+          "country": "中国",
+          "zip_code": "100000"
+        },
+        "payment_method": "credit_card"
+      }
+    },
+    
+    "invalid_requests": {
+      "empty_fields": {
+        "username": "",
+        "email": "",
+        "password": ""
+      },
+      "invalid_email_format": {
+        "username": "test_user",
+        "email": "invalid-email-format",
+        "password": "Test@123456"
+      },
+      "short_password": {
+        "username": "test_user",
+        "email": "test@example.com",
+        "password": "123"
+      },
+      "negative_price": {
+        "name": "测试产品",
+        "price": -10.0,
+        "category": "电子产品"
+      },
+      "missing_required_fields": {
+        "name": "测试产品"
+        // 缺少必填字段 price, category
+      },
+      "duplicate_username": {
+        "username": "admin", // 已存在的用户名
+        "email": "new@example.com",
+        "password": "Test@123456"
+      },
+      "invalid_product_id": {
+        "product_id": 99999, // 不存在的产品ID
+        "quantity": 1
+      }
+    },
+    
+    "edge_cases": {
+      "max_length_fields": {
+        "username": "a".repeat(50),
+        "email": `${"a".repeat(50)}@example.com`,
+        "description": "测试描述".repeat(100)
+      },
+      "min_length_fields": {
+        "username": "a",
+        "email": "a@b.c",
+        "password": "A1@abcd"
+      },
+      "special_characters": {
+        "username": "user_name-123.456",
+        "email": "user.name+tag@example.com",
+        "name": "产品名称@#$%^&*()"
+      },
+      "unicode_characters": {
+        "username": "测试用户",
+        "email": "测试@例子.com",
+        "description": "中文描述测试 🚀✨✅"
+      },
+      "boundary_values": {
+        "age": 0,
+        "price": 0.01,
+        "quantity": 1,
+        "stock_quantity": 0,
+        "rating": 5.0
+      },
+      "large_numbers": {
+        "price": 9999999.99,
+        "quantity": 9999,
+        "stock_quantity": 999999
+      }
+    }
+  },
+  
+  "performance_test_data": {
+    "concurrent_users": [1, 10, 50, 100, 500],
+    "request_rates": ["1/s", "10/s", "100/s", "1000/s"],
+    "payload_sizes": {
+      "small": "1KB",
+      "medium": "10KB",
+      "large": "100KB",
+      "xlarge": "1MB"
+    },
+    "duration_options": ["30s", "1m", "5m", "15m", "1h"]
+  },
+  
+  "security_test_data": {
+    "sql_injection": [
+      "' OR '1'='1",
+      "'; DROP TABLE users; --",
+      "' UNION SELECT username, password FROM users --"
+    ],
+    "xss_attacks": [
+      "<script>alert('XSS')</script>",
+      "<img src='x' onerror='alert(1)'>",
+      "javascript:alert('XSS')"
+    ],
+    "path_traversal": [
+      "../../../etc/passwd",
+      "..\\..\\..\\windows\\system32\\config\\SAM",
+      "/etc/passwd%00"
+    ],
+    "command_injection": [
+      "; ls -la",
+      "| cat /etc/passwd",
+      "`id`",
+      "$(whoami)"
+    ]
+  },
+  
+  "mock_responses": {
+    "success_response": {
+      "status": "success",
+      "code": 200,
+      "message": "操作成功",
+      "data": {
+        "id": 123,
+        "created_at": "2025-02-07T10:30:00Z"
+      }
+    },
+    "error_response": {
+      "status": "error",
+      "code": 400,
+      "message": "请求参数无效",
+      "errors": [
+        {
+          "field": "email",
+          "message": "邮箱格式不正确"
+        },
+        {
+          "field": "password",
+          "message": "密码长度至少8位"
+        }
+      ]
+    },
+    "not_found_response": {
+      "status": "error",
+      "code": 404,
+      "message": "资源不存在",
+      "data": null
+    },
+    "unauthorized_response": {
+      "status": "error",
+      "code": 401,
+      "message": "未授权访问",
+      "data": null
+    },
+    "server_error_response": {
+      "status": "error",
+      "code": 500,
+      "message": "服务器内部错误",
+      "data": null
+    }
+  },
+  
+  "test_configuration": {
+    "default_timeout": 30,
+    "retry_count": 3,
+    "assertion_timeout": 10,
+    "poll_interval": 0.5,
+    "screenshot_on_failure": true,
+    "log_level": "INFO",
+    "report_format": ["allure", "html", "junit"],
+    "parallel_execution": false,
+    "max_workers": 4
+  }
+}
