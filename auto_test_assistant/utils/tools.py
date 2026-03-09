@@ -4,7 +4,6 @@ import base64
 import json
 import os
 import re
-import shutil
 import subprocess
 import time
 
@@ -16,11 +15,11 @@ import pyautogui
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
-from openai import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from langchain_core.tools import tool, BaseTool
 from langchain_community.document_loaders import WebBaseLoader
+from auto_test_assistant.manager.operation_checkpoint_manager import OperationCheckpointManager
 
 # ==================== 日志配置 ====================
 logging.basicConfig(
@@ -29,6 +28,10 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger("LoginTest")
+
+# ==================== 检查点管理器 ====================
+checkpoint_manager = OperationCheckpointManager()
+
 # ==================== 配置区域 ====================
 num_seconds = 1.2
 # 阿里云视觉模型 API 配置（兼容 OpenAI 格式）
@@ -43,83 +46,6 @@ ALIYUN_MODEL = "qwen3.5-plus"  # 如果此模型不支持图像，请修改为 q
 # 截图保存路径
 SCREENSHOT_DIR = "./screenshots"
 os.makedirs(SCREENSHOT_DIR, exist_ok=True)
-
-
-# ==================== 版本控制配置 ====================
-CHECKPOINT_DIR = "./checkpoints"
-os.makedirs(CHECKPOINT_DIR, exist_ok=True)
-
-
-class OperationCheckpointManager:
-    """操作检查点管理器，用于版本控制和回滚"""
-
-    def __init__(self, log_file_path: str):
-        self.log_file_path = Path(log_file_path)
-        self.checkpoint_dir = Path(CHECKPOINT_DIR)
-        self.checkpoint_index = 0
-
-    def create_checkpoint(self) -> str:
-        """创建检查点，返回检查点ID"""
-        checkpoint_id = f"checkpoint_{int(time.time() * 1000)}"
-        checkpoint_folder = self.checkpoint_dir / checkpoint_id
-        checkpoint_folder.mkdir(parents=True, exist_ok=True)
-
-        # 保存当前日志文件内容
-        if self.log_file_path.exists():
-            shutil.copy2(self.log_file_path, checkpoint_folder / "operation_log.py")
-
-        # 保存当前截图
-        current_screenshot = self._get_latest_screenshot()
-        if current_screenshot:
-            shutil.copy2(current_screenshot, checkpoint_folder / "screenshot.png")
-
-        # 保存检查点元数据
-        metadata = {
-            "checkpoint_id": checkpoint_id,
-            "timestamp": time.time(),
-            "log_file_path": str(self.log_file_path),
-            "has_log": self.log_file_path.exists(),
-            "has_screenshot": current_screenshot is not None
-        }
-        (checkpoint_folder / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-
-        logger.info(f"创建检查点: {checkpoint_id}")
-        return checkpoint_id
-
-    def _get_latest_screenshot(self) -> Optional[Path]:
-        """获取最新的截图文件"""
-        if not self.checkpoint_dir.exists():
-            return None
-        screenshots = list(self.checkpoint_dir.glob("**/screenshot.png"))
-        return screenshots[-1] if screenshots else None
-
-    def rollback_to_checkpoint(self, checkpoint_id: str) -> str:
-        """回滚到指定检查点"""
-        checkpoint_folder = self.checkpoint_dir / checkpoint_id
-        if not checkpoint_folder.exists():
-            return f"回滚失败：检查点 {checkpoint_id} 不存在"
-
-        # 恢复日志文件
-        log_backup = checkpoint_folder / "operation_log.py"
-        if log_backup.exists():
-            shutil.copy2(log_backup, self.log_file_path)
-            logger.info(f"已恢复日志文件: {self.log_file_path}")
-
-        # 返回截图路径供模型验证
-        screenshot_path = checkpoint_folder / "screenshot.png"
-        if screenshot_path.exists():
-            logger.info(f"回滚完成，可用于验证的截图: {screenshot_path}")
-            return str(screenshot_path)
-
-        return "回滚完成"
-
-    def get_latest_checkpoint(self) -> Optional[str]:
-        """获取最新的检查点ID"""
-        checkpoint_folders = [d for d in self.checkpoint_dir.iterdir() if d.is_dir() and d.name.startswith("checkpoint_")]
-        if not checkpoint_folders:
-            return None
-        latest = max(checkpoint_folders, key=lambda d: d.stat().st_mtime)
-        return latest.name
 
 
 def _append_operation_log(log_file_path: str, code: str) -> None:
@@ -199,7 +125,7 @@ def call_aliyun_vision(sys_prompt, user_prompt, image) -> dict:
 
     start_time = time.time()
     try:
-        response = requests.post(ALIYUN_BASE_URL, headers=headers, json=payload, timeout=30)
+        response = requests.post(ALIYUN_BASE_URL, headers=headers, json=payload, timeout=50)
         elapsed = time.time() - start_time
         logger.info(f"API 响应耗时: {elapsed:.2f} 秒")
         logger.info(f"HTTP 状态码: {response.status_code}")
@@ -231,9 +157,85 @@ def call_aliyun_vision(sys_prompt, user_prompt, image) -> dict:
         return {}
 
 
+def validate_steps_with_vision(steps: List[str], current_screenshot_path: str, 
+                               previous_screenshot_path: Optional[str] = None) -> tuple[bool, str]:
+    """
+    使用视觉模型验证步骤是否已正确执行
+    
+    Args:
+        steps: 需要验证的步骤列表
+        current_screenshot_path: 当前截图文件路径
+        previous_screenshot_path: 上一个检查点的截图文件路径（可选）
+        
+    Returns:
+        (验证是否成功, 消息)
+    """
+    from PIL import Image
+    
+    if not os.path.exists(current_screenshot_path):
+        return False, f"当前截图文件不存在: {current_screenshot_path}"
+    
+    current_image = Image.open(current_screenshot_path)
+    previous_image = None
+    if previous_screenshot_path and os.path.exists(previous_screenshot_path):
+        previous_image = Image.open(previous_screenshot_path)
+    
+    # 构建系统提示词
+    sys_prompt = """Role
+你是一个专业的 UI 自动化测试验证助手。你的任务是分析两个屏幕截图（前后状态）和一系列操作步骤，判断这些步骤是否已正确执行。
+
+Task
+1. 分析提供的操作步骤列表
+2. 对比前后两个截图（如果提供了上一个截图）
+3. 判断每个步骤是否已在界面上正确执行
+4. 考虑UI状态变化、元素可见性、文本内容等
+5. 给出整体验证结论
+
+Output Schema
+请严格遵守以下 JSON 结构： {"validation_result": "success 或 failure", "confidence": 0.0 到 1.0 之间的置信度分数, "message": "详细的验证说明" }
+
+Constraints
+- 如果所有步骤都正确执行，返回 "validation_result": "success"
+- 如果有任何步骤未正确执行或状态不符合预期，返回 "validation_result": "failure"
+- 置信度表示你对判断的把握程度
+- 消息应简洁明了地说明验证结果
+
+User Input
+操作步骤列表：
+"""
+    
+    steps_text = "\n".join([f"{i+1}. {step}" for i, step in enumerate(steps)])
+    user_prompt = f"""请验证以下操作步骤是否已正确执行：
+
+操作步骤：
+{steps_text}
+
+{"请注意：提供了前后两个截图进行对比。" if previous_image else "请注意：只提供了当前截图，无法进行前后对比。"}
+请仔细分析截图内容，判断每个步骤是否已正确完成。"""
+    
+    # 调用视觉模型
+    answer = call_aliyun_vision(sys_prompt, user_prompt, current_image)
+    
+    if not answer:
+        return False, "模型验证调用失败"
+    
+    validation_result = answer.get("validation_result", "failure")
+    confidence = answer.get("confidence", 0.0)
+    message = answer.get("message", "无详细消息")
+    
+    success = validation_result.lower() == "success"
+    return success, f"{message} (置信度: {confidence})"
+
+
 @tool("invoke_model_tool", return_direct=False, description="截图并调用视觉模型获取控件坐标")
-def invoke_model_tool(widget: str) -> str:
-    """截图并调用视觉模型获取控件在屏幕上的位置坐标。参数：widget=控件描述。"""
+def invoke_model_tool(step_id: int, use_case_id: Optional[str] = None, operation_log_path: Optional[str] = None) -> str:
+    """截图并调用视觉模型获取控件在屏幕上的位置坐标。
+    参数：
+        step_id: 当前步骤的id
+        use_case_id: 可选，测试用例ID，用于检查点管理
+        operation_log_path: 操作日志文件路径
+    """
+    step_list = []
     image = pyautogui.screenshot()
     timestamp = int(time.time() * 1000)
     filename = f"full_screen_{timestamp}.png"
@@ -243,9 +245,60 @@ def invoke_model_tool(widget: str) -> str:
         logger.info(f"截图已保存: {filepath}")
     else:
         logger.debug("截图未保存文件")
+    # 检查点验证逻辑
+    if use_case_id is not None:
+        logger.info(f"操作日志文件路径：{operation_log_path}")
+        # 设置当前测试用例
+        checkpoint_manager.set_current_test_case(use_case_id, operation_log_path)
+        # 如果没有提供步骤，使用空列表
+        output_dir = Path("json")
+        output_file = output_dir / "ui_use_cases.json"
+        with open(output_file, "r", encoding="utf-8") as f:
+            ui_use_cases = json.load(f)
+        use_case_dict = {uc['use_case_id']: uc for uc in ui_use_cases}
+
+        # 根据 ID 获取用例
+        target_use_case = use_case_dict.get(use_case_id)
+        if target_use_case:
+            step_list = target_use_case.get("use_case_steps", [])
+
+        prev_checkpoint = checkpoint_manager.get_previous_checkpoint()
+
+        # 获取截图文件路径（如果保存了）
+        screenshot_path = None
+        if filename:
+            screenshot_path = os.path.join(SCREENSHOT_DIR, filename)
+
+        if prev_checkpoint:
+            # 存在上一个checkpoint，表示当前步骤不是该用例第一次调用视觉模型，需要对上一次调用视觉模型的结果进行review
+            target_index = next(i for i, step in enumerate(step_list) if step['id'] == step_id)
+            result = step_list[:target_index]
+            # 调用验证并创建检查点（暂时假设验证成功）
+            validation_success = checkpoint_manager.validate_and_create_checkpoint(
+                operation_log_path=operation_log_path,
+                steps=result,
+                current_screenshot_path=screenshot_path,
+                model_validator=validate_steps_with_vision
+            )
+            if not validation_success:
+                # 验证失败，回退到上一个检查点
+                prev_checkpoint = checkpoint_manager.get_previous_checkpoint()
+                if prev_checkpoint:
+                    rollback_info = checkpoint_manager.rollback_to_checkpoint(prev_checkpoint.checkpoint_id, operation_log_path)
+                    logger.warning(f"步骤验证失败，已回滚到检查点: {rollback_info['checkpoint_id']}")
+                    return f"步骤验证失败，已回滚到检查点: {rollback_info['checkpoint_id']}"
+                else:
+                    logger.warning("步骤验证失败，但没有上一个检查点可回滚")
+                    return "步骤验证失败，但没有上一个检查点可回滚"
+        else:
+            # 不存在上一个检查点，直接创建checkpoint
+            target_index = next(i for i, step in enumerate(step_list) if step['id'] == step_id)
+            result = step_list[:target_index]
+            checkpoint_manager.create_checkpoint(screenshot_path=screenshot_path, metadata={"step_id": step_id}, steps=result, operation_log_path=operation_log_path)
+    
     screen_x, screen_y = pyautogui.size()
 
-    sys_prompt = f"""Role
+    sys_prompt = """Role
 你是一个专业的 UI 自动化视觉定位助手。你的任务是分析提供的截图，根据用户的文本描述，精准定位界面中的目标控件，并输出其相对位置比例。
 
 Task
@@ -263,9 +316,15 @@ Constraints
 确保 JSON 语法正确，可直接被代码解析。
 不需要输出具体的像素值或屏幕分辨率，仅需比例。
 User Input
-控件描述：{widget}"""
+控件描述"""
+    # 获取当前步骤描述
+    step_dict = {step['id']: step['value'] for step in step_list}
+    step_desc = step_dict.get(step_id)
 
-    user_prompt = f"请找出图中 '{widget}' 的中心点坐标。"
+    if step_desc is None:
+        logger.error("无法获取步骤描述")
+        return "无法获取步骤描述"
+    user_prompt = f"请根据描述找出你需要的控件的中心坐标百分比：{step_desc}。"
 
     answer = call_aliyun_vision(sys_prompt, user_prompt, image)
 
@@ -324,75 +383,17 @@ def dragTo_tool(x: int, y: int, operation_log_path: Optional[str] = None) -> str
         return f"拖拽操作失败：{e}"
 
 
-def execute_with_verification(
-    operation_func,
-    operation_log_path: str,
-    *args,
-    **kwargs
-) -> dict:
-    """
-    执行操作并截图验证，验证失败时自动回滚。
-
-    参数:
-        operation_func: 要执行的键鼠操作函数
-        operation_log_path: 操作日志文件路径
-        *args, **kwargs: 传递给操作函数的参数
-
-    返回:
-        dict: {
-            "success": bool,           # 操作是否成功
-            "result": str,             # 操作结果消息
-            "screenshot_path": str,   # 操作后的截图路径
-            "checkpoint_id": str,     # 创建的检查点ID
-            "need_rollback": bool,    # 是否需要回滚（验证失败）
-            "rollback_screenshot": str # 回滚后可用于验证的截图路径
-        }
-    """
-    # 创建检查点
-    checkpoint_manager = OperationCheckpointManager(operation_log_path)
-    checkpoint_id = checkpoint_manager.create_checkpoint()
-
-    # 执行操作
-    result = operation_func(*args, **kwargs)
-
-    # 截图
-    timestamp = time.time()
-    filename = f"verify_{timestamp}.png"
-    screenshot_path = os.path.join(SCREENSHOT_DIR, filename)
-    image = pyautogui.screenshot()
-    image.save(screenshot_path)
-    logger.info(f"验证截图已保存: {screenshot_path}")
-
-    return {
-        "success": "失败" not in result,
-        "result": result,
-        "screenshot_path": screenshot_path,
-        "checkpoint_id": checkpoint_id,
-        "need_rollback": False,
-        "rollback_screenshot": None
-    }
-
-
-def rollback_operation(operation_log_path: str, checkpoint_id: str = None) -> str:
-    """
-    回滚到指定检查点或上一个检查点。
-
-    参数:
-        operation_log_path: 操作日志文件路径
-        checkpoint_id: 可选的检查点ID，默认回滚到上一个
-
-    返回:
-        str: 回滚结果消息
-    """
-    checkpoint_manager = OperationCheckpointManager(operation_log_path)
-
-    if checkpoint_id is None:
-        checkpoint_id = checkpoint_manager.get_latest_checkpoint()
-        if checkpoint_id is None:
-            return "回滚失败：没有可用的检查点"
-
-    rollback_screenshot = checkpoint_manager.rollback_to_checkpoint(checkpoint_id)
-    return rollback_screenshot
+@tool("typewrite", return_direct=False, description="使用键鼠操作中 鼠标拖拽 操作")
+def typewrite(input_str: str, operation_log_path: Optional[str] = None) -> str:
+    """使用键鼠操作中 键盘输入 操作。参数：input_str=输入的字符串，operation_log_path=可选的操作日志文件路径"""
+    try:
+        pyautogui.typewrite(input_str, interval=0.25)
+        if operation_log_path:
+            log_code = f"pyautogui.typewrite({input_str}, interval=0.25)"
+            _append_operation_log(operation_log_path, log_code)
+        return "键盘输入操作完成"
+    except Exception as e:
+        return f"键盘输入操作失败：{e}"
 
 
 @tool("read", return_direct=False, description="读取文件内容")
@@ -869,5 +870,6 @@ def list_all_mcp_tools() -> List[BaseTool]:
         webfetch_tool,
         click_tool,
         moveTo_tool,
-        dragTo_tool
+        dragTo_tool,
+        typewrite
     ]

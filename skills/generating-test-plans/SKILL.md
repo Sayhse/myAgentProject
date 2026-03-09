@@ -76,7 +76,7 @@ description: 从项目需求文档和 Swagger API 定义生成详细的测试计
    - 优先级和应对措施
 
 ### 输出模板
-使用 `skills/generating-test-plans/references/test_plan_template.md` 作为基础模板，根据实际需求填充具体内容。确保测试计划包含所有必要的章节和细节。
+使用 `F:/bb-study/python/FirstProduct/myAgentProject/skills/generating-test-plans/references/test_plan_template.md` 作为基础模板，根据实际需求填充具体内容。确保测试计划包含所有必要的章节和细节。
 
 ## 最佳实践
 
@@ -119,11 +119,11 @@ description: 从项目需求文档和 Swagger API 定义生成详细的测试计
 - 使用 `read` 工具查看需求文档内容
 - 使用 `webfetch` 工具获取 Swagger JSON 数据
 - 使用 `bash` 工具运行辅助脚本（如果提供了 scripts/）
-- 使用 `read` 工具查看 `skills/generating-test-plans/references/test_plan_template.md` 获取标准格式
+- 使用 `read` 工具查看 `F:/bb-study/python/FirstProduct/myAgentProject/skills/generating-test-plans/references/test_plan_template.md` 获取标准格式
 
 ## 脚本支持
 
 如果 scripts/ 目录下有辅助脚本，可以使用它们：
-- `skills/generating-test-plans/scripts/parse_requirements.py`：解析需求文档，提取结构化信息
-- `skills/generating-test-plans/scripts/analyze_swagger.py`：分析 API 定义，生成端点清单
-- `skills/generating-test-plans/scripts/generate_test_matrix.py`：创建测试覆盖矩阵
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/generating-test-plans/scripts/parse_requirements.py`：解析需求文档，提取结构化信息
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/generating-test-plans/scripts/analyze_swagger.py`：分析 API 定义，生成端点清单
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/generating-test-plans/scripts/generate_test_matrix.py`：创建测试覆盖矩阵

@@ -153,14 +153,14 @@ tests/
 ## 脚本支持
 
 如果 scripts/ 目录下有辅助脚本，可以使用它们：
-- `skills/generating-test-cases/scripts/parse_test_plan.py`：解析测试计划，提取结构化信息
-- `skills/generating-test-cases/scripts/generate_pytest_code.py`：生成 pytest 测试代码
-- `skills/generating-test-cases/scripts/create_allure_config.py`：创建 allure 配置
-- `skills/generating-test-cases/scripts/generate_test_data.py`：生成测试数据文件
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/generating-test-cases/scripts/parse_test_plan.py`：解析测试计划，提取结构化信息
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/generating-test-cases/scripts/generate_pytest_code.py`：生成 pytest 测试代码
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/generating-test-cases/scripts/create_allure_config.py`：创建 allure 配置
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/generating-test-cases/scripts/generate_test_data.py`：生成测试数据文件
 
 ## 模板参考
 
-使用 `skills/generating-test-cases/references/` 目录下的模板：
+使用 `F:/bb-study/python/FirstProduct/myAgentProject/skills/generating-test-cases/references/` 目录下的模板：
 - `pytest_template.py`: pytest 测试代码模板
 - `allure_config.yml`: allure 配置模板
 - `conftest_template.py`: conftest.py 模板

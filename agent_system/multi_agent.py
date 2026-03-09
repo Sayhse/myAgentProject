@@ -383,7 +383,6 @@ class MultiAgentSystem:
         3. 提取关键步骤并生成结构化的 TodoList
         4. 返回 JSON 格式的任务列表
         """
-        import json
         
         # 定义返回的 JSON Schema
         workflow_schema = {

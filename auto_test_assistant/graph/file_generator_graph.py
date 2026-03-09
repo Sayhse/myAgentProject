@@ -93,7 +93,7 @@ def execute_task_list(state: FileGeneratorAgentState):
         result = task_executor.get_state(config=config)
     else:
         writer({"interrupt": task_executor.get_state(config)})
-        question = task_executor.get_state(config).value.get("content", "")
+        question = task_executor.get_state(config).values.get("content", "")
         # user_input = input(f"关于任务[{interrupt.value.get('task', {})["id"]}]：{interrupt.value.get('task', {})["content"]}  存在缺失信息！\n"
         #                    f"请回答：{question}")
         user_input = input(f"请回答：{question}")

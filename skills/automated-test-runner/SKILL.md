@@ -58,16 +58,16 @@ description: 自动化测试运行与修复工具，用于读取项目 README.md
 
 本技能包含以下脚本：
 
-- `scripts/parse_readme.py` - 解析 README.md 提取命令
-- `scripts/run_tests.py` - 执行测试并捕获结果
-- `scripts/fix_errors.py` - 自动修复常见测试错误
-- `scripts/generate_report.py` - 生成 Allure 报告
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/automated-test-runner/scripts/parse_readme.py` - 解析 README.md 提取命令
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/automated-test-runner/scripts/run_tests.py` - 执行测试并捕获结果
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/automated-test-runner/scripts/fix_errors.py` - 自动修复常见测试错误
+- `F:/bb-study/python/FirstProduct/myAgentProject/skills/automated-test-runner/scripts/generate_report.py` - 生成 Allure 报告
 
 具体用法请参考各脚本的文档说明。
 
 ## 资源文件
 
-### skills/automated-test-runner/scripts/ 目录
+### F:/bb-study/python/FirstProduct/myAgentProject/skills/automated-test-runner/scripts/ 目录
 包含以下自动化脚本：
 
 - `parse_readme.py` - 解析 README.md 文件，提取安装和测试命令
@@ -75,13 +75,13 @@ description: 自动化测试运行与修复工具，用于读取项目 README.md
 - `fix_errors.py` - 自动修复常见的测试错误
 - `generate_report.py` - 生成 Allure 测试报告
 
-### skills/automated-test-runner/references/ 目录
+### F:/bb-study/python/FirstProduct/myAgentProject/skills/automated-test-runner/references/ 目录
 包含参考文档：
 
 - `allure_guide.md` - Allure 测试报告配置和使用指南
 - `test_frameworks.md` - 常见测试框架（pytest, unittest, jest）的识别和执行模式
 
-### skills/automated-test-runner/assets/ 目录
+### F:/bb-study/python/FirstProduct/myAgentProject/skills/automated-test-runner/assets/ 目录
 包含模板文件：
 
 - `allure_config` - Allure 配置文件模板
